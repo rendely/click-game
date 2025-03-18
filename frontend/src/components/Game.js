@@ -1,0 +1,82 @@
+import React, { useState, useEffect } from 'react';
+import ColorChangeRound from './Rounds/ColorChangeRound';
+import BrightnessRound from './Rounds/BrightnessRound';
+import { playNotification } from '../utils/audio';
+
+function Game({ roundData, onPlayerClick, username }) {
+  const [feedback, setFeedback] = useState('');
+  const [showFeedback, setShowFeedback] = useState(false);
+  
+  // Play notification when round starts
+  useEffect(() => {
+    if (roundData) {
+      playNotification();
+    }
+  }, [roundData]);
+
+  // Render the appropriate round component based on round type
+  const renderRound = () => {
+    if (!roundData) return <div>Loading...</div>;
+    
+    switch (roundData.round_type) {
+      case 'ColorChangeRound':
+        return (
+          <ColorChangeRound 
+            data={roundData.round_data} 
+            onPlayerClick={handlePlayerClick}
+          />
+        );
+      case 'BrightnessRound':
+        return (
+          <BrightnessRound
+            data={roundData.round_data}
+            onPlayerClick={handlePlayerClick}
+          />
+        );
+      default:
+        return (
+          <div className="unknown-round">
+            <h3>Unknown Round Type</h3>
+            <p>Waiting for next round...</p>
+          </div>
+        );
+    }
+  };
+
+  // Handle player click with feedback
+  const handlePlayerClick = (clickTime) => {
+    onPlayerClick(clickTime);
+    
+    // Show brief feedback
+    setFeedback('Click registered!');
+    setShowFeedback(true);
+    
+    // Hide feedback after 1.5 seconds
+    setTimeout(() => {
+      setShowFeedback(false);
+    }, 1500);
+  };
+
+  return (
+    <div className="game-round">
+      <div className="round-info">
+        <h2>Round in Progress</h2>
+        {roundData && roundData.round_data && (
+          <p className="instructions">{roundData.round_data.instructions}</p>
+        )}
+      </div>
+      
+      <div className="round-content">
+        {renderRound()}
+      </div>
+      
+      {showFeedback && (
+        <div className="feedback-message">
+          {feedback}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default Game;
