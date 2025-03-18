@@ -10,6 +10,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize game manager
 game_manager = GameManager()
+game_manager.set_socketio(socketio)
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
@@ -34,6 +35,12 @@ def handle_disconnect():
 def handle_register_player(data):
     username = data.get('username')
     player_id = request.sid
+
+    # Check if username already exists
+    existing_id = game_manager.username_to_id.get(username)
+    if existing_id:
+        # Remove the old connection
+        game_manager.remove_player(existing_id)
 
     # Register the player with the game manager
     success = game_manager.add_player(player_id, username)

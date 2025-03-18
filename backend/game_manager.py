@@ -6,6 +6,8 @@ from round_types.brightness import BrightnessRound
 
 class GameManager:
     def __init__(self):
+         # Add a mapping of username to player_id
+        self.username_to_id = {}  # username -> player_id
         # Player tracking
         self.players = {}  # player_id -> {'username': str, 'score': float, 'ready': bool}
         self.current_round = None
@@ -20,14 +22,20 @@ class GameManager:
         
     def add_player(self, player_id, username):
         """Add a new player to the game"""
-        if player_id in self.players:
-            return False
+         # If username already exists, remove the old connection
+        if username in self.username_to_id:
+            old_player_id = self.username_to_id[username]
+            if old_player_id in self.players:
+                del self.players[old_player_id]
+            
+        # Update username to player_id mapping
+        self.username_to_id[username] = player_id
             
         self.players[player_id] = {
             'username': username,
-            'score': 0,  # Initialize with zero score
+            'score': 0,
             'rounds_played': 0,
-            'ready': True,  # Initially ready
+            'ready': True,
             'avg_time': 0
         }
         return True
@@ -35,6 +43,10 @@ class GameManager:
     def remove_player(self, player_id):
         """Remove a player from the game"""
         if player_id in self.players:
+            username = self.players[player_id]['username']
+            # Clean up username mapping
+            if username in self.username_to_id:
+                del self.username_to_id[username]
             del self.players[player_id]
             return True
         return False
@@ -55,16 +67,18 @@ class GameManager:
     
     def get_game_state(self):
         """Get the current game state for a newly connected player"""
-        if self.current_round is None or not self.round_in_progress:
-            return {"status": "waiting"}
-        
-        # If a round is in progress, return relevant information
-        return {
-            "status": "in_progress",
-            "round_type": self.current_round.__class__.__name__,
-            "round_data": self.current_round.get_client_data()
+        state = {
+            "status": "waiting" if not self.round_in_progress else "in_progress",
+            "leaderboard": self._get_leaderboard()  # Add this line
         }
-    
+        if self.current_round is not None and self.round_in_progress:
+            state.update({
+                "round_type": self.current_round.__class__.__name__,
+                "round_data": self.current_round.get_client_data()
+            })
+
+        return state
+
     def is_round_in_progress(self):
         """Check if a round is currently in progress"""
         return self.round_in_progress
