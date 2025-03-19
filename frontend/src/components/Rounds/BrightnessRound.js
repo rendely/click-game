@@ -22,12 +22,7 @@ function BrightnessRound({ data, onPlayerClick }) {
     
     // Linear increase from 0% to 100% brightness
     const newBrightness = Math.floor(progress * 100);
-    console.log('Updating brightness:', {
-      elapsed,
-      progress,
-      newBrightness,
-      brightnessChangeDuration
-    });
+    
     setBrightness(newBrightness);
     
     if (progress < 1 && !hasClicked) {

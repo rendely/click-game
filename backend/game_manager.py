@@ -141,7 +141,8 @@ class GameManager:
         self.current_round.execute()
         
         # When round is complete, calculate and update scores
-        self._end_round()
+        if self.round_in_progress:
+            self._end_round()
     
     def _end_round(self):
         """End the current round and update scores"""

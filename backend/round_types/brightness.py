@@ -3,8 +3,8 @@ import random
 from .base_round import BaseRound
 
 class BrightnessRound(BaseRound):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, players):
+        super().__init__(players)
         
         # Configure this round type
         self.round_config = {
@@ -34,11 +34,12 @@ class BrightnessRound(BaseRound):
         
         # Record when brightness starts changing
         self.active_time = time.time()
+        print('done executing')
         
         # Wait for the remaining round time
-        remaining_time = self.round_config['max_duration'] - self.round_config['initial_pause']
-        if remaining_time > 0:
-            time.sleep(remaining_time)
+        # remaining_time = self.round_config['max_duration'] - self.round_config['initial_pause']
+        # if remaining_time > 0:
+        #     time.sleep(remaining_time)
     
     def process_click(self, player_id, click_time):
         """Process a player's click and return immediate feedback"""
@@ -121,6 +122,10 @@ class BrightnessRound(BaseRound):
         # If active time has passed and brightness duration is complete, we can end
         if (self.active_time and 
             (time.time() - self.active_time) > self.round_config['brightness_duration']):
+            return True
+        
+        # If all players have a result we can end early
+        if len(self.player_results) == len(self.players):
             return True
             
         return False

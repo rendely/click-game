@@ -10,9 +10,7 @@ function ColorChangeRound({ data, onPlayerClick }) {
   
   // Set up the round when it loads
   useEffect(() => {
-    // Wait a random amount of time before changing color
-    const changeColorDelay = Math.random() * (7000 - 2000) + 2000; // 2-7 seconds
-    console.log(data)
+    
     timeoutRef.current = setTimeout(() => {
       setBoxColor('#4a90e2'); // Change to blue
       setIsActive(true);
