@@ -3,6 +3,7 @@ import random
 import threading
 from round_types.color_change import ColorChangeRound
 from round_types.brightness import BrightnessRound
+from round_types.click_box import ClickBoxRound
 
 class GameManager:
     def __init__(self):
@@ -12,8 +13,9 @@ class GameManager:
         self.players = {}  # player_id -> {'username': str, 'score': float, 'ready': bool}
         self.current_round = None
         self.round_in_progress = False
-        # self.round_types = [ColorChangeRound, BrightnessRound]
-        self.round_types = [BrightnessRound]
+        # Include our new ClickBoxRound in the available round types
+        # self.round_types = [ColorChangeRound, BrightnessRound, ClickBoxRound]
+        self.round_types = [ClickBoxRound]
         self.round_history = []
         self.socketio = None  # Will be set by the Flask-SocketIO instance
         

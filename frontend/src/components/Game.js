@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ColorChangeRound from './Rounds/ColorChangeRound';
 import BrightnessRound from './Rounds/BrightnessRound';
+import ClickBoxRound from './Rounds/ClickBoxRound';
 import { playNotification } from '../utils/audio';
 
 function Game({ roundData, onPlayerClick, username }) {
@@ -33,6 +34,13 @@ function Game({ roundData, onPlayerClick, username }) {
             onPlayerClick={handlePlayerClick}
           />
         );
+      case 'ClickBoxRound':
+        return (
+          <ClickBoxRound
+            data={roundData.round_data}
+            onPlayerClick={handlePlayerClick}
+          />
+        );
       default:
         return (
           <div className="unknown-round">
@@ -46,7 +54,6 @@ function Game({ roundData, onPlayerClick, username }) {
   // Handle player click with feedback
   const handlePlayerClick = (clickTime) => {
     onPlayerClick(clickTime);
-    
   };
 
   return (
