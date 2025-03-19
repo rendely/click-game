@@ -114,3 +114,18 @@ class ColorChangeRound(BaseRound):
             return True
             
         return False
+        
+    def get_results(self):
+        """Get the final results for all players in this round, including those who didn't click"""
+        # Get the default results for players who did click
+        results = super().get_results()
+        
+        # Add default "no click" results for players who didn't click
+        for player_id in self.players:
+            if player_id not in results:
+                results[player_id] = {
+                    'success': False,
+                    'message': 'You didn\'t click during this round.',
+                    'reaction_time': 10.0  # Penalty value for not clicking
+                }                
+        return results

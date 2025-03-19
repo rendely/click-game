@@ -37,9 +37,9 @@ class BrightnessRound(BaseRound):
         print('done executing')
         
         # Wait for the remaining round time
-        # remaining_time = self.round_config['max_duration'] - self.round_config['initial_pause']
-        # if remaining_time > 0:
-        #     time.sleep(remaining_time)
+        remaining_time = self.round_config['max_duration'] - self.round_config['initial_pause']
+        if remaining_time > 0:
+            time.sleep(remaining_time)
     
     def process_click(self, player_id, click_time):
         """Process a player's click and return immediate feedback"""
@@ -129,3 +129,19 @@ class BrightnessRound(BaseRound):
             return True
             
         return False
+    
+    def get_results(self):
+        """Get the final results for all players in this round, including those who didn't click"""
+        # Get the default results for players who did click
+        results = super().get_results()
+        
+        # Add default "no click" results for players who didn't click
+        for player_id in self.players:
+            if player_id not in results:
+                results[player_id] = {
+                    'success': False,
+                    'message': 'You didn\'t click during this round.',
+                    'reaction_time': 10.0,
+                    'brightness_error': 100  # Maximum error
+                }          
+        return results

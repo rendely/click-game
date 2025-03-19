@@ -13,7 +13,7 @@ class GameManager:
         self.current_round = None
         self.round_in_progress = False
         # self.round_types = [ColorChangeRound, BrightnessRound]
-        self.round_types = [ColorChangeRound]
+        self.round_types = [BrightnessRound]
         self.round_history = []
         self.socketio = None  # Will be set by the Flask-SocketIO instance
         
