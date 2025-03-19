@@ -12,7 +12,8 @@ class GameManager:
         self.players = {}  # player_id -> {'username': str, 'score': float, 'ready': bool}
         self.current_round = None
         self.round_in_progress = False
-        self.round_types = [ColorChangeRound, BrightnessRound]
+        # self.round_types = [ColorChangeRound, BrightnessRound]
+        self.round_types = [ColorChangeRound]
         self.round_history = []
         self.socketio = None  # Will be set by the Flask-SocketIO instance
         
@@ -114,7 +115,7 @@ class GameManager:
             
         # Select a random round type
         RoundClass = random.choice(self.round_types)
-        self.current_round = RoundClass()
+        self.current_round = RoundClass(players=self.players)
         self.round_in_progress = True
         
         # Get round initialization data
@@ -163,11 +164,11 @@ class GameManager:
             }, room='waiting_room')
             
         # Add a delay before allowing the next round to start
-        time.sleep(5)  # 5 second delay between rounds
+        # time.sleep(5)  # 5 second delay between rounds
         
         # Mark all connected players as ready for the next round
-        for player_id in self.players:
-            self.players[player_id]['ready'] = True
+        # for player_id in self.players:
+        #     self.players[player_id]['ready'] = True
             
         # Check if we should auto-start the next round
         if self.should_start_next_round():

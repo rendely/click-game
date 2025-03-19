@@ -2,11 +2,12 @@ import time
 from abc import ABC, abstractmethod
 
 class BaseRound(ABC):
-    def __init__(self):
+    def __init__(self, players):
         self.start_time = None
         self.active_time = None  # When the actual interaction should happen
         self.player_results = {}  # player_id -> result data
         self.round_config = {}    # Configuration for this round
+        self.players = players
         
     @abstractmethod
     def get_client_data(self):

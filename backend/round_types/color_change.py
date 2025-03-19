@@ -3,14 +3,14 @@ import random
 from .base_round import BaseRound
 
 class ColorChangeRound(BaseRound):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, players):
+        super().__init__(players)
         
         # Configure this round type
         self.round_config = {
             'min_delay': 2.0,    # Minimum delay before color change (seconds)
             'max_delay': 7.0,    # Maximum delay before color change (seconds)
-            'max_duration': 15.0,  # Maximum round duration (seconds)
+            'max_duration': 10.0,  # Maximum round duration (seconds)
             'success_window': 3.0   # Time window for valid clicks after color change (seconds)
         }
         
@@ -25,7 +25,8 @@ class ColorChangeRound(BaseRound):
         return {
             'type': 'color_change',
             'instructions': 'Click when the box changes color! Don\'t click too early.',
-            'max_duration': self.round_config['max_duration']
+            'max_duration': self.round_config['max_duration'],
+            'delay': self.color_change_delay
         }
     
     def execute(self):
@@ -56,7 +57,8 @@ class ColorChangeRound(BaseRound):
         
         # Adjust client click time to server timeline
         time_diff = server_now - client_now
-        adjusted_click_time = client_click + time_diff
+        # adjusted_click_time = client_click + time_diff
+        adjusted_click_time = server_now
         
         # Determine if the click was valid
         if self.active_time is None:
@@ -105,6 +107,10 @@ class ColorChangeRound(BaseRound):
             
         # If color has changed and success window has elapsed, we can end early
         if self.active_time and (time.time() - self.active_time) > self.round_config['success_window']:
+            return True
+        
+        # If all players have a result we can end early
+        if len(self.player_results) == len(self.players):
             return True
             
         return False

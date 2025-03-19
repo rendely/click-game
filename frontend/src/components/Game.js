@@ -47,14 +47,6 @@ function Game({ roundData, onPlayerClick, username }) {
   const handlePlayerClick = (clickTime) => {
     onPlayerClick(clickTime);
     
-    // Show brief feedback
-    setFeedback('Click registered!');
-    setShowFeedback(true);
-    
-    // Hide feedback after 1.5 seconds
-    setTimeout(() => {
-      setShowFeedback(false);
-    }, 1500);
   };
 
   return (
@@ -69,12 +61,6 @@ function Game({ roundData, onPlayerClick, username }) {
       <div className="round-content">
         {renderRound()}
       </div>
-      
-      {showFeedback && (
-        <div className="feedback-message">
-          {feedback}
-        </div>
-      )}
     </div>
   );
 }
