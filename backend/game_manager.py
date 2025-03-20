@@ -13,9 +13,8 @@ class GameManager:
         self.players = {}  # player_id -> {'username': str, 'score': float, 'ready': bool}
         self.current_round = None
         self.round_in_progress = False
-        # Include our new ClickBoxRound in the available round types
-        # self.round_types = [ColorChangeRound, BrightnessRound, ClickBoxRound]
-        self.round_types = [ClickBoxRound]
+        self.round_types = [ColorChangeRound, BrightnessRound, ClickBoxRound]
+        # self.round_types = [ClickBoxRound]
         self.round_history = []
         self.socketio = None  # Will be set by the Flask-SocketIO instance
         
@@ -148,7 +147,7 @@ class GameManager:
     
     def _end_round(self):
         """End the current round and update scores"""
-        self.round_in_progress = False
+        self.round_in_progress = False        
         
         # Get round results
         results = self.current_round.get_results()

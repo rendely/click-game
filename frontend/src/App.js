@@ -20,6 +20,7 @@ function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [connected, setConnected] = useState(false);
 
+
   // Initialize socket connection
   useEffect(() => {
     if (socket) {
