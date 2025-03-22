@@ -1,13 +1,16 @@
 import React, { useEffect } from 'react';
 import Leaderboard from './Leaderboard';
-import { playNotification } from '../utils/audio';
+import { playNotification, playWelcomeMusic } from '../utils/audio';
 
 function WaitingRoom({ playerCount, username, playerId, onReady, roundResults, leaderboard }) {
+
+
   
   // Play notification when results are updated
   useEffect(() => {
     if (roundResults) {
       playNotification();
+      playWelcomeMusic()
     }
   }, [roundResults]);
 

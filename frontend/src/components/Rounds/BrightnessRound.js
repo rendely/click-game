@@ -113,10 +113,6 @@ function BrightnessRound({ data, onPlayerClick }) {
           <span>Get ready...</span>
         )}
       </div>
-      
-      <div className="brightness-value">
-        Current: {brightness}%
-      </div>
     </div>
   );
 }

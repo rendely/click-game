@@ -17,6 +17,7 @@ class GameManager:
         # self.round_types = [ClickBoxRound]
         self.round_history = []
         self.socketio = None  # Will be set by the Flask-SocketIO instance
+        self.current_round_id = 0 
         
     def set_socketio(self, socketio_instance):
         """Set the Flask-SocketIO instance for broadcasts"""
@@ -64,7 +65,8 @@ class GameManager:
         
         return {
             "type": self.current_round.__class__.__name__,
-            "in_progress": self.round_in_progress
+            "in_progress": self.round_in_progress,
+            "round_id": self.current_round_id
         }
     
     def get_game_state(self):
@@ -76,7 +78,8 @@ class GameManager:
         if self.current_round is not None and self.round_in_progress:
             state.update({
                 "round_type": self.current_round.__class__.__name__,
-                "round_data": self.current_round.get_client_data()
+                "round_data": self.current_round.get_client_data(),
+                "round_id": self.current_round_id
             })
 
         return state
@@ -118,6 +121,10 @@ class GameManager:
         RoundClass = random.choice(self.round_types)
         self.current_round = RoundClass(players=self.players)
         self.round_in_progress = True
+
+        # Increment round ID for the new round
+        self.current_round_id += 1
+        round_id = self.current_round_id
         
         # Get round initialization data
         round_data = self.current_round.get_client_data()
@@ -126,27 +133,37 @@ class GameManager:
         if self.socketio:
             self.socketio.emit('round_start', {
                 'round_type': self.current_round.__class__.__name__,
-                'round_data': round_data
+                'round_data': round_data,
+                'round_id': round_id
             }, room='waiting_room')
             
         # Start round execution thread
-        thread = threading.Thread(target=self._execute_round)
+        thread = threading.Thread(target=self._execute_round, args=(round_id,))
         thread.daemon = True
         thread.start()
         
         return True
     
-    def _execute_round(self):
+    def _execute_round(self, round_id):
         """Execute the current round logic in a separate thread"""
+        # Check if this execution is for the current round
+        if round_id != self.current_round_id:
+            return  # Ignore outdated round execution
+        
         # Let the round run its course
         self.current_round.execute()
         
-        # When round is complete, calculate and update scores
-        if self.round_in_progress:
-            self._end_round()
+        # When round is complete, calculate and update scores, using the round_id to prevent race conditions
+        if self.round_in_progress and round_id == self.current_round_id:
+            self._end_round(round_id)
     
-    def _end_round(self):
+    def _end_round(self, round_id):
         """End the current round and update scores"""
+
+        # Check if this is still the active round
+        if round_id != self.current_round_id:
+            return  # Ignore outdated round end request
+        
         self.round_in_progress = False        
         
         # Get round results
@@ -154,6 +171,13 @@ class GameManager:
         
         # Update player scores
         self._update_player_scores(results)
+
+        # Save round in history
+        self.round_history.append({
+            'round_id': round_id,
+            'round_type': self.current_round.__class__.__name__,
+            'results': results
+        })
         
         # Get leaderboard
         leaderboard = self._get_leaderboard()
@@ -162,7 +186,8 @@ class GameManager:
         if self.socketio:
             self.socketio.emit('round_end', {
                 'results': results,
-                'leaderboard': leaderboard
+                'leaderboard': leaderboard,
+                'round_id': round_id
             }, room='waiting_room')
             
         # Add a delay before allowing the next round to start
@@ -176,13 +201,17 @@ class GameManager:
         if self.should_start_next_round():
             self.start_next_round()
     
-    def process_player_click(self, player_id, click_time):
+    def process_player_click(self, player_id, click_time, round_id=None):
         """Process a player's click during a round"""
         if not self.round_in_progress or self.current_round is None:
             return {"success": False, "message": "No round in progress"}
             
         if player_id not in self.players:
             return {"success": False, "message": "Player not registered"}
+        
+        # If round_id is provided, verify it matches the current round
+        if round_id is not None and round_id != self.current_round_id:
+            return {"success": False, "message": "Click for outdated round"}
             
         # Let the current round handle the click logic
         result = self.current_round.process_click(player_id, click_time)
@@ -190,7 +219,7 @@ class GameManager:
         # Check if the round should end (all players clicked or timeout)
         if self.current_round.should_end():
             # Signal round end in a non-blocking way
-            thread = threading.Thread(target=self._end_round)
+            thread = threading.Thread(target=self._end_round, args=(self.current_round_id,))
             thread.daemon = True
             thread.start()
             
