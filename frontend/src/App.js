@@ -117,13 +117,11 @@ function App() {
   };
 
   // Handle player click during a round
-  const handlePlayerClick = (clickTime) => {
+  const handlePlayerClick = (data) => {
     if (socket && gameState === 'playing') {
       socket.emit('player_click', {
-        click_time: {
-          client_click: clickTime,
-          client_now: Date.now() / 1000
-        }
+          ...data,
+          client_now: Date.now() / 1000        
       });
     }
   };

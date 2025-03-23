@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ColorChangeRound from './Rounds/ColorChangeRound';
 import BrightnessRound from './Rounds/BrightnessRound';
 import ClickBoxRound from './Rounds/ClickBoxRound';
+import DoubleTroubleRound from './Rounds/DoubleTroubleRound';
 import { playNotification } from '../utils/audio';
 
 function Game({ roundData, onPlayerClick, username }) {
@@ -37,6 +38,13 @@ function Game({ roundData, onPlayerClick, username }) {
       case 'ClickBoxRound':
         return (
           <ClickBoxRound
+            data={roundData.round_data}
+            onPlayerClick={handlePlayerClick}
+          />
+        );
+      case 'DoubleTroubleRound':
+        return (
+          <DoubleTroubleRound
             data={roundData.round_data}
             onPlayerClick={handlePlayerClick}
           />

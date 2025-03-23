@@ -41,12 +41,12 @@ class BrightnessRound(BaseRound):
         if remaining_time > 0:
             time.sleep(remaining_time)
     
-    def process_click(self, player_id, click_time):
+    def process_click(self, player_id, data):
         """Process a player's click and return immediate feedback"""
         # Convert client timestamp to server timeline for fair comparison
         server_now = time.time()
-        client_now = click_time.get('client_now', server_now)
-        client_click = click_time.get('client_click', server_now)
+        client_now = data.get('client_now', server_now)
+        client_click = data.get('client_click', server_now)
         
         # Adjust client click time to server timeline
         time_diff = server_now - client_now

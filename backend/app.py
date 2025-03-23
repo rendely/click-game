@@ -63,10 +63,9 @@ def handle_register_player(data):
 @socketio.on('player_click')
 def handle_player_click(data):
     player_id = request.sid
-    click_time = data.get('click_time')
-
+    
     # Process the player's click in the current round
-    result = game_manager.process_player_click(player_id, click_time)
+    result = game_manager.process_player_click(player_id, data)
 
     # Send back the immediate result to the player
     emit('click_result', result)

@@ -4,6 +4,7 @@ import threading
 from round_types.color_change import ColorChangeRound
 from round_types.brightness import BrightnessRound
 from round_types.click_box import ClickBoxRound
+from round_types.double_trouble import DoubleTroubleRound
 
 class GameManager:
     def __init__(self):
@@ -13,8 +14,8 @@ class GameManager:
         self.players = {}  # player_id -> {'username': str, 'score': float, 'ready': bool}
         self.current_round = None
         self.round_in_progress = False
-        self.round_types = [ColorChangeRound, BrightnessRound, ClickBoxRound]
-        # self.round_types = [ClickBoxRound]
+        self.round_types = [ColorChangeRound, BrightnessRound, ClickBoxRound, DoubleTroubleRound]
+        # self.round_types = [ColorChangeRound]
         self.round_history = []
         self.socketio = None  # Will be set by the Flask-SocketIO instance
         self.current_round_id = 0 
@@ -201,7 +202,7 @@ class GameManager:
         if self.should_start_next_round():
             self.start_next_round()
     
-    def process_player_click(self, player_id, click_time, round_id=None):
+    def process_player_click(self, player_id, data, round_id=None):
         """Process a player's click during a round"""
         if not self.round_in_progress or self.current_round is None:
             return {"success": False, "message": "No round in progress"}
@@ -214,7 +215,7 @@ class GameManager:
             return {"success": False, "message": "Click for outdated round"}
             
         # Let the current round handle the click logic
-        result = self.current_round.process_click(player_id, click_time)
+        result = self.current_round.process_click(player_id, data)
         
         # Check if the round should end (all players clicked or timeout)
         if self.current_round.should_end():

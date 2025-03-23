@@ -2,41 +2,67 @@ import time
 import random
 from .base_round import BaseRound
 
-class ClickBoxRound(BaseRound):
+class DoubleTroubleRound(BaseRound):
     def __init__(self, players):
         super().__init__(players)
         
         # Configure this round type
         self.round_config = {
-            'delay': 3.0,         # Delay before box appears (seconds)
+            'delay': 3.0,         # Delay before boxes appear (seconds)
             'max_duration': 10.0, # Maximum round duration (seconds)
-            'success_window': 7.0  # Time window for valid clicks after box appears (seconds)
+            'success_window': 7.0  # Time window for valid clicks after boxes appear (seconds)
         }
         
-        # Generate random position for the small box
-        self.position = {
+        # Generate random positions for both boxes
+        # Make sure they don't overlap
+        self.good_position = {
             'x': random.uniform(0.1, 0.9),  # Relative position (0-1) within container
             'y': random.uniform(0.1, 0.9)   # Relative position (0-1) within container
         }
         
+        # Generate position for the bad box, ensuring some minimum distance
+        while True:
+            bad_x = random.uniform(0.1, 0.9)
+            bad_y = random.uniform(0.1, 0.9)
+            
+            # Calculate distance between the two boxes
+            distance = ((bad_x - self.good_position['x'])**2 + 
+                       (bad_y - self.good_position['y'])**2)**0.5
+            
+            # If the distance is sufficient, use this position
+            if distance > 0.2:  # 20% of the container width/height as minimum distance
+                break
+        
+        self.bad_position = {
+            'x': bad_x,
+            'y': bad_y
+        }
+        
+        # Randomize which box will be green and which will be red
+        self.good_color = "#4CAF50"  # Green
+        self.bad_color = "#FF5252"   # Red
+        
     def get_client_data(self):
         """Return round data to send to clients for initialization"""
         return {
-            'type': 'click_box',
-            'instructions': 'A small box will appear after 3 seconds. Click it as fast as you can!',
+            'type': 'double_trouble',
+            'instructions': 'Two colored boxes will appear. Click the GREEN box as fast as you can, avoid the RED box!',
             'max_duration': self.round_config['max_duration'],
             'delay': self.round_config['delay'],
-            'position': self.position  # Random position for the box
+            'good_position': self.good_position,
+            'bad_position': self.bad_position,
+            'good_color': self.good_color,
+            'bad_color': self.bad_color
         }
     
     def execute(self):
         """Execute the round logic on the server"""
         self.start_time = time.time()
         
-        # Sleep until the box should appear
+        # Sleep until the boxes should appear
         time.sleep(self.round_config['delay'])
         
-        # Record the exact time when the box appeared
+        # Record the exact time when the boxes appeared
         self.active_time = time.time()
         
         # Wait for the remaining round time
@@ -49,39 +75,61 @@ class ClickBoxRound(BaseRound):
         # Convert client timestamp to server timeline for fair comparison
         server_now = time.time()
         client_now = data.get('client_now', server_now)
-        client_click = data.get('client_click', server_now)
+        client_click =  data.get('client_click', server_now)
+        click_position = data.get('position', None)
         
         # Adjust client click time to server timeline
         time_diff = server_now - client_now
-        # adjusted_click_time = client_click + time_diff
         adjusted_click_time = server_now
         
         # Determine if the click was valid
         if self.active_time is None:
-            # Box hasn't appeared yet - too early!
+            # Boxes haven't appeared yet - too early!
             result = {
                 'success': False,
-                'message': 'Too early! The box hasn\'t appeared yet.',
+                'message': 'Too early! The boxes haven\'t appeared yet.',
+                'reaction_time': 10.0  # Penalty value
+            }
+        elif click_position is None:
+            # No position data
+            result = {
+                'success': False,
+                'message': 'Invalid click detected.',
                 'reaction_time': 10.0  # Penalty value
             }
         else:
-            # Box has appeared - calculate reaction time
+            # Boxes have appeared - calculate reaction time
             reaction_time = adjusted_click_time - self.active_time
             
             if reaction_time < 0:
-                # Clicked before box appeared (should be rare with adjusted time)
+                # Clicked before boxes appeared (should be rare with adjusted time)
                 result = {
                     'success': False,
-                    'message': 'Too early! The box hadn\'t appeared yet.',
+                    'message': 'Too early! The boxes hadn\'t appeared yet.',
                     'reaction_time': 10.0  # Penalty value
                 }
             elif reaction_time <= self.round_config['success_window']:
-                # Valid click within success window
-                result = {
-                    'success': True,
-                    'message': f'Nice! You clicked in {reaction_time:.3f} seconds.',
-                    'reaction_time': reaction_time
-                }
+                # Check if the click is closest to the good box or the bad box
+                dist_to_good = ((click_position['x'] - self.good_position['x'])**2 + 
+                               (click_position['y'] - self.good_position['y'])**2)**0.5
+                
+                dist_to_bad = ((click_position['x'] - self.bad_position['x'])**2 + 
+                              (click_position['y'] - self.bad_position['y'])**2)**0.5
+                
+                if dist_to_good < dist_to_bad:
+                    # Clicked closer to the good box
+                    result = {
+                        'success': True,
+                        'message': f'Nice! You clicked the correct box in {reaction_time:.3f} seconds.',
+                        'reaction_time': reaction_time
+                    }
+                else:
+                    # Clicked closer to the bad box
+                    result = {
+                        'success': False,
+                        'message': 'Oops! You clicked the wrong box!',
+                        'reaction_time': 10.0  # Penalty for clicking the wrong box
+                    }
             else:
                 # Too slow (beyond success window)
                 result = {
@@ -101,7 +149,7 @@ class ClickBoxRound(BaseRound):
         if super().should_end():
             return True
             
-        # If box has appeared and success window has elapsed, we can end early
+        # If boxes have appeared and success window has elapsed, we can end early
         if self.active_time and (time.time() - self.active_time) > self.round_config['success_window']:
             return True
         
@@ -121,7 +169,7 @@ class ClickBoxRound(BaseRound):
             if player_id not in results:
                 results[player_id] = {
                     'success': False,
-                    'message': 'You didn\'t click the box during this round.',
+                    'message': 'You didn\'t click any box during this round.',
                     'reaction_time': 10.0  # Penalty value for not clicking
                 }                
         return results

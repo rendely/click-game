@@ -20,7 +20,7 @@ class BaseRound(ABC):
         pass
     
     @abstractmethod
-    def process_click(self, player_id, click_time):
+    def process_click(self, player_id, data):
         """Process a player's click and return immediate feedback"""
         pass
     
