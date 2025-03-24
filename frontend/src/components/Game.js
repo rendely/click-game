@@ -3,6 +3,7 @@ import ColorChangeRound from './Rounds/ColorChangeRound';
 import BrightnessRound from './Rounds/BrightnessRound';
 import ClickBoxRound from './Rounds/ClickBoxRound';
 import DoubleTroubleRound from './Rounds/DoubleTroubleRound';
+import TicTacToeRound from './Rounds/TicTacToeRound';
 import { playNotification } from '../utils/audio';
 
 function Game({ roundData, onPlayerClick, username }) {
@@ -45,6 +46,13 @@ function Game({ roundData, onPlayerClick, username }) {
       case 'DoubleTroubleRound':
         return (
           <DoubleTroubleRound
+            data={roundData.round_data}
+            onPlayerClick={handlePlayerClick}
+          />
+        );
+      case 'TicTacToeRound':
+        return (
+          <TicTacToeRound
             data={roundData.round_data}
             onPlayerClick={handlePlayerClick}
           />

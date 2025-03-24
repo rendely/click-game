@@ -5,6 +5,7 @@ from round_types.color_change import ColorChangeRound
 from round_types.brightness import BrightnessRound
 from round_types.click_box import ClickBoxRound
 from round_types.double_trouble import DoubleTroubleRound
+from round_types.tic_tac_toe import TicTacToeRound
 
 class GameManager:
     def __init__(self):
@@ -14,8 +15,8 @@ class GameManager:
         self.players = {}  # player_id -> {'username': str, 'score': float, 'ready': bool}
         self.current_round = None
         self.round_in_progress = False
-        self.round_types = [ColorChangeRound, BrightnessRound, ClickBoxRound, DoubleTroubleRound]
-        # self.round_types = [ColorChangeRound]
+        # self.round_types = [ColorChangeRound, BrightnessRound, ClickBoxRound, DoubleTroubleRound, TicTacToeRound]
+        self.round_types = [TicTacToeRound]
         self.round_history = []
         self.socketio = None  # Will be set by the Flask-SocketIO instance
         self.current_round_id = 0 
